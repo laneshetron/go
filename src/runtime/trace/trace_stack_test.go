@@ -222,6 +222,7 @@ func TestTraceSymbolize(t *testing.T) {
 			{"runtime/trace_test.TestTraceSymbolize.func9", 0},
 		}},
 		{trace.EvGoUnblock, []frame{
+			{"sync.runtime_notifyListNotifyOne", 0},
 			{"sync.(*Cond).Signal", 0},
 			{"runtime/trace_test.TestTraceSymbolize", 0},
 			{"testing.tRunner", 0},

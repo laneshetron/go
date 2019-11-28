@@ -559,11 +559,36 @@ func notifyListNotifyOne(l *notifyList) {
 	}
 
 	lock(&l.lock)
+	defer unlock(&l.lock)
 
+	notifyListNotifyTicketUnsafe(l, l.notify)
+}
+
+// notifyListNotifyTicket notifies one entry in the list holding a given ticket.
+// If the ticket was previously notified, notifyListNotifyTicket returns immediately.
+// If ticket t-1 was previously notified, behavior is identical to notifyListNotifyOne.
+// Otherwise, it blocks.
+//go:linkname notifyListNotifyTicket sync.runtime_notifyListNotifyTicket
+func notifyListNotifyTicket(l *notifyList, t uint32) {
+	// Fast-path: Return right away if this ticket has already been notified.
+	if less(t, atomic.Load(&l.notify)) {
+		return
+	}
+
+	// Wait for previous ticket before proceeding
+	notifyListWait(l, t-1)
+
+	lock(&l.lock)
+	defer unlock(&l.lock)
+
+	notifyListNotifyTicketUnsafe(l, t)
+}
+
+// notifyListNotifyTicketUnsafe Notifies one entry in the list.
+// Do NOT call without first holding l.lock.
+func notifyListNotifyTicketUnsafe(l *notifyList, t uint32) {
 	// Re-check under the lock if we need to do anything.
-	t := l.notify
 	if t == atomic.Load(&l.wait) {
-		unlock(&l.lock)
 		return
 	}
 
@@ -594,13 +619,11 @@ func notifyListNotifyOne(l *notifyList) {
 			if n == nil {
 				l.tail = p
 			}
-			unlock(&l.lock)
 			s.next = nil
 			readyWithTime(s, 4)
 			return
 		}
 	}
-	unlock(&l.lock)
 }
 
 //go:linkname notifyListCheck sync.runtime_notifyListCheck

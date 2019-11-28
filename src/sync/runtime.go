@@ -50,6 +50,9 @@ func runtime_notifyListNotifyAll(l *notifyList)
 // See runtime/sema.go for documentation.
 func runtime_notifyListNotifyOne(l *notifyList)
 
+// See runtime/sema.go for documentation.
+func runtime_notifyListNotifyTicket(l *notifyList, t uint32)
+
 // Ensure that sync and runtime agree on size of notifyList.
 func runtime_notifyListCheck(size uintptr)
 func init() {
