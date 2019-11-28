@@ -5,8 +5,8 @@
 package sync
 
 type TicketLock struct {
-	noCopy  noCopy
-	notify  notifyList
+	noCopy noCopy
+	notify notifyList
 }
 
 // notifyListAdd adds the caller to a notify list such that it can receive
